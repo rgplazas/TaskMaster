@@ -155,18 +155,12 @@ sequenceDiagram
 
     U->>UI: Click Edit button
     UI->>UI: Replace text with input
-    U->>UI: Edit and press Enter or lose focus
     UI->>API: updateTask(id, { text })
     API-->>UI: Task updated
     UI->>UI: Update this.tasks[index]
     UI->>UI: renderTasks
     UI->>UI: showNotification
-- `getTasks()` → `Promise<array>`
-- `saveTasks(tasks)` → `Promise<boolean>`
-- `addTask({ text })` → `Promise<object>`
-- `updateTask(id, updates)` → `Promise<object>`
-- `deleteTask(id)` → `Promise<boolean>`
-- `clearCompleted()` → `Promise<array>`
+```
 - `seedFromFetch(limit)` → `Promise<array>` (requiere red)
 - `seedFromXHR(limit)` → `Promise<array>` (requiere red)
 
