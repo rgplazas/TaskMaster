@@ -1,5 +1,7 @@
 # TaskMaster (HTML + CSS + JavaScript puro)
 
+[![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
+
 Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
@@ -103,7 +105,9 @@ sequenceDiagram
     UI->>API: addTask({ text })
     API-->>API: getTasks() / saveTasks()
     API-->>UI: Tarea creada
-    UI->>UI: this.tasks.unshift(...); renderTasks(); showNotification()
+    UI->>UI: Agrega tarea a this.tasks (unshift)
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
 ```
 
 ### Sembrar con Fetch o XHR
@@ -122,7 +126,44 @@ sequenceDiagram
     NET-->>API: 200 OK (JSON)
     API-->>API: map() -> saveTasks()
     API-->>UI: Lista sembrada
-    UI->>UI: this.tasks = ...; renderTasks(); showNotification(); setDemoLoading(false)
+    UI->>UI: Actualiza this.tasks con lista sembrada
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
+    UI->>UI: setDemoLoading(false)
+```
+
+---
+
+### Filtrado de tareas (flowchart)
+
+```mermaid
+flowchart TD
+    A[Click en botón de filtro] --> B{Filtro}
+    B -->|all| C[Clonar this.tasks]
+    B -->|pending| D[Filtrar: !task.completed]
+    B -->|completed| E[Filtrar: task.completed]
+    C --> F[renderTasks()]
+    D --> F[renderTasks()]
+    E --> F[renderTasks()]
+    F --> G[renderTaskCount()]
+```
+
+### Edición inline de una tarea (sequence)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI
+
+    U->>UI: Click en botón Editar
+    UI->>UI: Reemplaza texto por <input>
+    U->>UI: Edita y presiona Enter o pierde foco
+    UI->>API: updateTask(id, { text })
+    API-->>UI: Tarea actualizada
+    UI->>UI: Actualiza this.tasks[index]
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
 ```
 
 ---
@@ -169,16 +210,22 @@ sequenceDiagram
 
 - Tests (si usas un entorno con Node)
   - Objetivo: Añadir unit tests a `TaskManager` (métodos puros) y pruebas de interacción DOM.
-  - Pistas: `jest` + `@testing-library/dom` o Playwright para flujos E2E.
+    - Pistas: `jest` + `@testing-library/dom` o Playwright para flujos E2E.
 
 ---
 
-## Troubleshooting (solución de problemas)
+## Glosario (para alumnos)
 
-- CORS con file://
-  - Síntoma: Errores al usar ES Modules o al hacer fetch de archivos locales.
-  - Causa: Políticas del navegador en `file://`.
-  - Solución: Scripts clásicos y APIs remotas con CORS permitido. Este proyecto ya lo hace.
+- Asincronía: Operaciones que tardan (red, disco) sin bloquear la UI. En JS se maneja con Promesas y async/await.
+- Promise: Objeto que representa el resultado futuro de una operación asincrónica (éxito o error).
+- DOM: Representación del documento HTML como árbol de nodos; permite manipular la interfaz desde JS.
+- CORS: Política que regula el acceso entre orígenes distintos; en file:// los navegadores restringen módulos y lecturas locales.
+- Fetch API: Interfaz moderna para peticiones HTTP basada en Promesas.
+- XMLHttpRequest (XHR): API clásica de AJAX previa a Fetch, basada en eventos/callbacks.
+- localStorage: Almacenamiento clave-valor persistente en el navegador; útil para demos sin servidor.
+- ARIA: Atributos de accesibilidad para mejorar la experiencia con tecnologías de asistencia (ej. aria-label).
+- :focus-visible: Pseudoclase CSS que muestra el foco al navegar con teclado sin molestar al uso con mouse.
+
 
 - Fetch/XHR fallan (sin red o endpoint caído)
   - Síntoma: Notificación de error al “Sembrar”.
