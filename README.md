@@ -122,30 +122,27 @@ sequenceDiagram
     U->>UI: Click "Sembrar (Fetch/XHR)"
     UI->>UI: setDemoLoading(true)
     UI->>API: seedFromFetch/seedFromXHR(limit)
-    API->>NET: GET /todos?_limit=limit
     NET-->>API: 200 OK (JSON)
     API-->>API: map() -> saveTasks()
     API-->>UI: Lista sembrada
     UI->>UI: Actualiza this.tasks con lista sembrada
     UI->>UI: renderTasks()
-    UI->>UI: showNotification()
+    UI->>UI: showNotification
     UI->>UI: setDemoLoading(false)
 ```
-
----
 
 ### Filtrado de tareas (flowchart)
 
 ```mermaid
 flowchart TD
-    A[Click en botón de filtro] --> B{Filtro}
-    B -->|all| C[Clonar this.tasks]
-    B -->|pending| D[Filtrar: !task.completed]
-    B -->|completed| E[Filtrar: task.completed]
-    C --> F[renderTasks()]
-    D --> F[renderTasks()]
-    E --> F[renderTasks()]
-    F --> G[renderTaskCount()]
+    A[Click filter] --> B{Filter}
+    B -->|all| C[Clone tasks]
+    B -->|pending| D[Filter pending]
+    B -->|completed| E[Filter completed]
+    C --> F[renderTasks]
+    D --> F
+    E --> F
+    F --> G[renderTaskCount]
 ```
 
 ### Edición inline de una tarea (sequence)
@@ -153,23 +150,17 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor U as Usuario
-    participant UI as DOM (TaskManager)
+    participant UI as DOM TaskManager
     participant API as taskAPI
 
-    U->>UI: Click en botón Editar
-    UI->>UI: Reemplaza texto por <input>
-    U->>UI: Edita y presiona Enter o pierde foco
+    U->>UI: Click Edit button
+    UI->>UI: Replace text with input
+    U->>UI: Edit and press Enter or lose focus
     UI->>API: updateTask(id, { text })
-    API-->>UI: Tarea actualizada
-    UI->>UI: Actualiza this.tasks[index]
-    UI->>UI: renderTasks()
-    UI->>UI: showNotification()
-```
-
----
-
-## API de datos (resumen rápido)
-
+    API-->>UI: Task updated
+    UI->>UI: Update this.tasks[index]
+    UI->>UI: renderTasks
+    UI->>UI: showNotification
 - `getTasks()` → `Promise<array>`
 - `saveTasks(tasks)` → `Promise<boolean>`
 - `addTask({ text })` → `Promise<object>`
