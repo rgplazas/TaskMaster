@@ -150,22 +150,26 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor U as Usuario
-    participant UI as DOM TaskManager
-    participant API as taskAPI
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (localStorage)
 
-    U->>UI: Click Edit button
-    UI->>UI: Replace text with input
-    UI->>API: updateTask(id, { text })
-    API-->>UI: Task updated
-    UI->>UI: Update this.tasks[index]
-    UI->>UI: renderTasks
-    UI->>UI: showNotification
+    U->>UI: Click botón "Editar"
+    UI->>UI: Reemplazar <span> por <input> y enfocar
+    alt Guardar (Enter o blur)
+        UI->>UI: newText = input.value.trim()
+        UI->>API: updateTask(id, { text: newText })
+        API-->>API: getTasks() / saveTasks()
+        API-->>UI: Tarea actualizada
+        UI->>UI: this.tasks[index] = updatedTask
+        UI->>UI: renderTasks()
+        UI->>UI: showNotification()
+    else Cancelar (Escape) o sin cambios
+        UI->>UI: renderTasks() (restaurar vista)
+    end
 ```
+
 - `seedFromFetch(limit)` → `Promise<array>` (requiere red)
 - `seedFromXHR(limit)` → `Promise<array>` (requiere red)
-
----
-
 ## Buenas prácticas visibles en el código
 
 - Escapado de HTML en `TaskManager.escapeHtml()`.
