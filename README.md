@@ -322,11 +322,11 @@ flowchart TD
     C[Click checkbox] -->|.task-checkbox| D[TaskManager.toggleTaskCompletion]
     E[Click Editar] -->|.edit-btn| F[TaskManager.updateTaskText]
     G[Click Eliminar] -->|.delete-btn| H[TaskManager.deleteTask]
-    I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks -> renderTasks]
+    I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks then renderTasks]
     K[Click Limpiar completadas] -->|#clearCompleted| L[TaskManager.clearCompletedTasks]
     M[Click Sembrar (Fetch)] -->|#seedFetch| N[taskAPI.seedFromFetch -> setDemoLoading]
     O[Click Sembrar (XHR)] -->|#seedXHR| P[taskAPI.seedFromXHR -> setDemoLoading]
-    Q[Click Vaciar todo] -->|#clearAll| R[taskAPI.saveTasks([]) -> renderTasks]
+    Q[Click Vaciar todo] -->|#clearAll| R[taskAPI.saveTasks(empty) then renderTasks]
 ```
 
 ## Buenas prácticas visibles en el código
