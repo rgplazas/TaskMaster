@@ -1,4 +1,4 @@
-# TaskMaster (HTML + CSS + JavaScript puro)
+﻿# TaskMaster (HTML + CSS + JavaScript puro)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
 
@@ -283,7 +283,7 @@ stateDiagram-v2
 classDiagram
     class TaskManager {
       - tasks: Array
-      - currentFilter: 'all'|'pending'|'completed'
+      - currentFilter: all|pending|completed
       + init()
       + loadTasks()
       + addTask(text)
@@ -304,7 +304,7 @@ classDiagram
     class TaskAPI {
       + getTasks()
       + saveTasks(tasks)
-      + addTask({text})
+      + addTask(text)
       + updateTask(id, updates)
       + deleteTask(id)
       + clearCompleted()
@@ -320,13 +320,13 @@ classDiagram
 flowchart TD
     A[Click "Añadir" / Enter] -->|#addTaskBtn / #taskInput| B[TaskManager.addTask]
     C[Click checkbox] -->|.task-checkbox| D[TaskManager.toggleTaskCompletion]
-    E[Click "Editar"] -->|.edit-btn| F[TaskManager.updateTaskText]
-    G[Click "Eliminar"] -->|.delete-btn| H[TaskManager.deleteTask]
+    E[Click Editar] -->|.edit-btn| F[TaskManager.updateTaskText]
+    G[Click Eliminar] -->|.delete-btn| H[TaskManager.deleteTask]
     I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks -> renderTasks]
-    K[Click "Limpiar completadas"] -->|#clearCompleted| L[TaskManager.clearCompletedTasks]
-    M[Click "Sembrar (Fetch)"] -->|#seedFetch| N[taskAPI.seedFromFetch -> setDemoLoading]
-    O[Click "Sembrar (XHR)"] -->|#seedXHR| P[taskAPI.seedFromXHR -> setDemoLoading]
-    Q[Click "Vaciar todo"] -->|#clearAll| R[taskAPI.saveTasks([]) -> renderTasks]
+    K[Click Limpiar completadas] -->|#clearCompleted| L[TaskManager.clearCompletedTasks]
+    M[Click Sembrar (Fetch)] -->|#seedFetch| N[taskAPI.seedFromFetch -> setDemoLoading]
+    O[Click Sembrar (XHR)] -->|#seedXHR| P[taskAPI.seedFromXHR -> setDemoLoading]
+    Q[Click Vaciar todo] -->|#clearAll| R[taskAPI.saveTasks([]) -> renderTasks]
 ```
 
 ## Buenas prácticas visibles en el código
