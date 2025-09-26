@@ -92,8 +92,9 @@ Notas:
 
 ## Diagramas de secuencia
 
-### Añadir una tarea (localStorage)
+### 1) CRUD de tareas
 
+#### 1.1 Añadir una tarea (localStorage)
 ```mermaid
 sequenceDiagram
     actor U as Usuario
@@ -110,43 +111,23 @@ sequenceDiagram
     UI->>UI: showNotification()
 ```
 
-### Sembrar con Fetch o XHR
-
+#### 1.2 Cambiar estado completado/pendiente
 ```mermaid
 sequenceDiagram
     actor U as Usuario
     participant UI as DOM (TaskManager)
-    participant API as taskAPI (fetch/xhr)
-    participant NET as JSONPlaceholder
+    participant API as taskAPI (localStorage)
 
-    U->>UI: Click "Sembrar (Fetch/XHR)"
-    UI->>UI: setDemoLoading(true)
-    UI->>API: seedFromFetch/seedFromXHR(limit)
-    NET-->>API: 200 OK (JSON)
-    API-->>API: map() -> saveTasks()
-    API-->>UI: Lista sembrada
-    UI->>UI: Actualiza this.tasks con lista sembrada
+    U->>UI: Click en checkbox de la tarea
+    UI->>UI: Buscar tarea por id en this.tasks
+    UI->>API: updateTask(id, { completed: !task.completed })
+    API-->>API: getTasks() / saveTasks()
+    API-->>UI: Tarea actualizada
+    UI->>UI: this.tasks[index] = updatedTask
     UI->>UI: renderTasks()
-    UI->>UI: showNotification
-    UI->>UI: setDemoLoading(false)
 ```
 
-### Filtrado de tareas (flowchart)
-
-```mermaid
-flowchart TD
-    A[Click filter] --> B{Filter}
-    B -->|all| C[Clone tasks]
-    B -->|pending| D[Filter pending]
-    B -->|completed| E[Filter completed]
-    C --> F[renderTasks]
-    D --> F
-    E --> F
-    F --> G[renderTaskCount]
-```
-
-### Edición inline de una tarea (sequence)
-
+#### 1.3 Edición inline de una tarea (texto)
 ```mermaid
 sequenceDiagram
     actor U as Usuario
@@ -168,8 +149,186 @@ sequenceDiagram
     end
 ```
 
+#### 1.4 Eliminar una tarea
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (localStorage)
+
+    U->>UI: Click botón "Eliminar"
+    UI->>U: confirm("¿Eliminar?")
+    alt Usuario confirma
+        UI->>API: deleteTask(id)
+        API-->>API: getTasks() / saveTasks(filtered)
+        API-->>UI: OK
+        UI->>UI: this.tasks = this.tasks.filter(t => t.id !== id)
+        UI->>UI: renderTasks()
+        UI->>UI: showNotification()
+    else Usuario cancela
+        UI->>UI: Sin cambios
+    end
+```
+
+### 2) Filtrado por estado
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+
+    U->>UI: Click filtro (all | pending | completed)
+    UI->>UI: currentFilter = filter
+    UI->>UI: getFilteredTasks()
+    UI-->>UI: Lista filtrada
+    UI->>UI: renderTasks()
+    UI->>UI: renderTaskCount()
+```
+
+### 3) Operaciones masivas
+
+#### 3.1 Limpiar tareas completadas
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (localStorage)
+
+    U->>UI: Click "Limpiar completadas"
+    UI->>API: clearCompleted()
+    API-->>API: getTasks() / saveTasks(only pending)
+    API-->>UI: remainingTasks
+    UI->>UI: this.tasks = remainingTasks
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
+```
+
+#### 3.2 Vaciar todas las tareas (barra de demostración)
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (localStorage)
+
+    U->>UI: Click "Vaciar todo"
+    UI->>U: confirm("¿Eliminar TODAS las tareas?")
+    alt Usuario confirma
+        UI->>API: saveTasks([])
+        API-->>UI: OK
+        UI->>UI: this.tasks = []
+        UI->>UI: renderTasks()
+        UI->>UI: showNotification()
+    else Usuario cancela
+        UI->>UI: Sin cambios
+    end
+```
+
+#### 3.3 Completar todas las tareas (opcional)
+Nota: Método disponible en taskAPI.completeAll(); no existe botón en la UI por defecto.
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (localStorage)
+
+    U->>UI: Click "Completar todas"
+    UI->>API: completeAll()
+    API-->>API: getTasks() / saveTasks(completed = true)
+    API-->>UI: updatedTasks
+    UI->>UI: this.tasks = updatedTasks
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
+```
+
+### 4) Demostración: Sembrar con Fetch o XHR
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant UI as DOM (TaskManager)
+    participant API as taskAPI (fetch/xhr)
+    participant NET as JSONPlaceholder
+
+    U->>UI: Click "Sembrar (Fetch/XHR)"
+    UI->>UI: setDemoLoading(true)
+    UI->>API: seedFromFetch/seedFromXHR(limit)
+    NET-->>API: 200 OK (JSON)
+    API-->>API: map() -> saveTasks()
+    API-->>UI: Lista sembrada
+    UI->>UI: Actualiza this.tasks con lista sembrada
+    UI->>UI: renderTasks()
+    UI->>UI: showNotification()
+    UI->>UI: setDemoLoading(false)
+```
 - `seedFromFetch(limit)` → `Promise<array>` (requiere red)
 - `seedFromXHR(limit)` → `Promise<array>` (requiere red)
+
+### 5) Auxiliares
+
+#### 5.1 Diagrama de estados de una tarea
+```mermaid
+stateDiagram-v2
+    [*] --> Pendiente: addTask(text)
+    Pendiente --> Completada: toggleTaskCompletion()
+    Completada --> Pendiente: toggleTaskCompletion()
+    Pendiente --> Editando: click Editar
+    Completada --> Editando: click Editar
+    Editando --> Pendiente: guardar cambios / cancelar
+    Editando --> Completada: guardar cambios / cancelar
+    Pendiente --> Eliminada: deleteTask()
+    Completada --> Eliminada: deleteTask()
+    Eliminada --> [*]
+```
+
+#### 5.2 Diagrama de clases (simplificado)
+```mermaid
+classDiagram
+    class TaskManager {
+      - tasks: Array
+      - currentFilter: 'all'|'pending'|'completed'
+      + init()
+      + loadTasks()
+      + addTask(text)
+      + toggleTaskCompletion(id)
+      + updateTaskText(id, newText)
+      + deleteTask(id)
+      + clearCompletedTasks()
+      + filterTasks(filter)
+      + getFilteredTasks()
+      + renderTasks()
+      + renderTaskCount()
+      + showNotification(message, type)
+      + setupEventListeners()
+      + setupTaskEventListeners()
+      + setDemoLoading(loading, opts)
+      + escapeHtml(unsafe)
+    }
+    class TaskAPI {
+      + getTasks()
+      + saveTasks(tasks)
+      + addTask({text})
+      + updateTask(id, updates)
+      + deleteTask(id)
+      + clearCompleted()
+      + completeAll()
+      + seedFromFetch(limit)
+      + seedFromXHR(limit)
+    }
+    TaskManager --> TaskAPI : usa
+```
+
+#### 5.3 Mapa de eventos de UI (resumen)
+```mermaid
+flowchart TD
+    A[Click "Añadir" / Enter] -->|#addTaskBtn / #taskInput| B[TaskManager.addTask]
+    C[Click checkbox] -->|.task-checkbox| D[TaskManager.toggleTaskCompletion]
+    E[Click "Editar"] -->|.edit-btn| F[TaskManager.updateTaskText]
+    G[Click "Eliminar"] -->|.delete-btn| H[TaskManager.deleteTask]
+    I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks -> renderTasks]
+    K[Click "Limpiar completadas"] -->|#clearCompleted| L[TaskManager.clearCompletedTasks]
+    M[Click "Sembrar (Fetch)"] -->|#seedFetch| N[taskAPI.seedFromFetch -> setDemoLoading]
+    O[Click "Sembrar (XHR)"] -->|#seedXHR| P[taskAPI.seedFromXHR -> setDemoLoading]
+    Q[Click "Vaciar todo"] -->|#clearAll| R[taskAPI.saveTasks([]) -> renderTasks]
+```
+
 ## Buenas prácticas visibles en el código
 
 - Escapado de HTML en `TaskManager.escapeHtml()`.
