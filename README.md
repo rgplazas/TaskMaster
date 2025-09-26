@@ -318,15 +318,15 @@ classDiagram
 #### 5.3 Mapa de eventos de UI (resumen)
 ```mermaid
 flowchart TD
-    A[Click "Añadir" / Enter] -->|#addTaskBtn / #taskInput| B[TaskManager.addTask]
+    A[Click Añadir / Enter] -->|#addTaskBtn / #taskInput| B[TaskManager.addTask]
     C[Click checkbox] -->|.task-checkbox| D[TaskManager.toggleTaskCompletion]
     E[Click Editar] -->|.edit-btn| F[TaskManager.updateTaskText]
     G[Click Eliminar] -->|.delete-btn| H[TaskManager.deleteTask]
-    I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks then renderTasks]
+    I[Click filtro] -->|.filter-btn| J[TaskManager.filterTasks and renderTasks]
     K[Click Limpiar completadas] -->|#clearCompleted| L[TaskManager.clearCompletedTasks]
-    M[Click Sembrar (Fetch)] -->|#seedFetch| N[taskAPI.seedFromFetch -> setDemoLoading]
-    O[Click Sembrar (XHR)] -->|#seedXHR| P[taskAPI.seedFromXHR -> setDemoLoading]
-    Q[Click Vaciar todo] -->|#clearAll| R[taskAPI.saveTasks(empty) then renderTasks]
+    M[Click Sembrar Fetch] -->|#seedFetch| N[taskAPI.seedFromFetch and setDemoLoading]
+    O[Click Sembrar XHR] -->|#seedXHR| P[taskAPI.seedFromXHR and setDemoLoading]
+    Q[Click Vaciar todo] -->|#clearAll| R[taskAPI.saveTasks empty and renderTasks]
 ```
 
 ## Buenas prácticas visibles en el código
