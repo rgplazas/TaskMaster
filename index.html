@@ -7,9 +7,11 @@
   - Cargar estilos y scripts en el orden correcto.
 
   Decisiones y razones:
-  - Sin frameworks ni módulos ES para permitir abrir con file:// sin servidores.
+  - UI migrada a Tailwind CSS 4.1 (CDN Play) para utilidades de diseño modernas.
+  - Tema claro/oscuro con clase 'dark' en <html> y persistencia en localStorage.
+  - Sin módulos ES para permitir abrir con file:// sin servidores.
   - Scripts clásicos en orden: api (datos) -> taskManager (lógica/UI) -> app (arranque).
-  - Se usan clases y data-attributes para separar estilo (CSS) y comportamiento (JS).
+  - IDs y data-attributes preservados para enlazar con la lógica JS.
 -->
 <html lang="es">
 <head>
@@ -17,73 +19,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaskMaster - Gestor de Tareas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Tailwind CSS 4.1 Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: { DEFAULT: '#2563eb', light: '#3b82f6' },
+              secondary: '#ef4444'
+            }
+          }
+        }
+      }
+    </script>
 </head>
-<body>
-    <div class="container">
-        <!-- Encabezado: título y selector de tema -->
-        <header class="header">
-            <h1><i class="fas fa-tasks"></i> TaskMaster</h1>
-            <div class="theme-toggle">
-                <i class="fas fa-moon"></i>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle" />
-                    <span class="slider round"></span>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-6 transition-colors duration-200">
+    <div class="max-w-3xl mx-auto">
+        <!-- Encabezado: título y selector de tema
+             Utilidades Tailwind:
+             - flex: contenedor flexible
+             - justify-between: espacio entre elementos
+             - items-center: alineación vertical centrada
+             - pb-4 mb-6: padding-bottom y margin-bottom
+             - border-b: borde inferior
+             - border-gray-200 dark:border-gray-700: color de borde adaptativo al tema
+        -->
+        <header class="flex justify-between items-center pb-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+            <h1 class="text-3xl font-bold text-primary flex items-center gap-2">
+                <i class="fas fa-tasks"></i> TaskMaster
+            </h1>
+            <!-- Toggle de tema claro/oscuro
+                 Implementación con Tailwind:
+                 - sr-only: oculta el input visualmente pero accesible para lectores de pantalla
+                 - peer: marca el input como referencia para estados peer-*
+                 - peer-checked:bg-primary: cambia color cuando el input está checked
+                 - peer-checked:translate-x-6: desplaza el círculo cuando está checked
+                 - transition: animación suave de cambios
+                 El JS en taskManager.js maneja la clase 'dark' en <html>
+            -->
+            <div class="flex items-center gap-2">
+                <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
+                <label class="relative inline-block w-12 h-6 cursor-pointer">
+                    <input type="checkbox" id="themeToggle" class="sr-only peer" />
+                    <span class="absolute inset-0 bg-primary-light rounded-full transition peer-checked:bg-primary"></span>
+                    <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></span>
                 </label>
-                <i class="fas fa-sun"></i>
+                <i class="fas fa-sun text-yellow-500"></i>
             </div>
         </header>
 
         <!-- Zona principal: entrada, filtros, estadísticas y lista -->
         <main>
-            <div class="add-task-container">
-                <input type="text" id="taskInput" placeholder="Añade una nueva tarea..." autocomplete="off" />
-                <button id="addTaskBtn" class="btn btn-primary">
+            <div class="flex gap-3 mb-6 flex-col sm:flex-row">
+                <input type="text" id="taskInput" placeholder="Añade una nueva tarea..." autocomplete="off" 
+                    class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary transition" />
+                <button id="addTaskBtn" class="px-6 py-3 bg-primary hover:bg-primary-light text-white font-medium rounded-lg transition flex items-center justify-center gap-2">
                     <i class="fas fa-plus"></i> Añadir
                 </button>
             </div>
 
-            <!-- Filtros de visualización -->
-            <div class="filters">
-                <button class="filter-btn active" data-filter="all">Todas</button>
-                <button class="filter-btn" data-filter="pending">Pendientes</button>
-                <button class="filter-btn" data-filter="completed">Completadas</button>
+            <!-- Filtros de visualización
+                 Botones con estado activo manejado por JS:
+                 - El botón activo tiene: bg-primary text-white border-primary
+                 - Los inactivos tienen: bg-transparent con hover effects
+                 - rounded-full: bordes completamente redondeados
+                 - data-filter: atributo para identificar el filtro (usado por JS)
+            -->
+            <div class="flex gap-3 mb-6 flex-wrap">
+                <button class="filter-btn px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full transition hover:bg-gray-100 dark:hover:bg-gray-700 bg-primary text-white border-primary" data-filter="all">Todas</button>
+                <button class="filter-btn px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full transition hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="pending">Pendientes</button>
+                <button class="filter-btn px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full transition hover:bg-gray-100 dark:hover:bg-gray-700" data-filter="completed">Completadas</button>
             </div>
 
             <!-- Resumen de estado -->
-            <div class="task-stats">
+            <div class="flex justify-between items-center mb-4 text-gray-600 dark:text-gray-400 text-sm">
                 <span id="taskCount">0 tareas</span>
-                <button id="clearCompleted" class="btn btn-text">Limpiar completadas</button>
+                <button id="clearCompleted" class="text-gray-600 dark:text-gray-400 hover:text-primary hover:underline transition">Limpiar completadas</button>
             </div>
 
             <!-- Barra de demostración: sembrar datos por Fetch o XHR y vaciar -->
-            <div class="demo-toolbar" aria-label="Demostración de carga de datos">
-                <label for="seedCount" style="color: var(--text-secondary);">Cantidad:</label>
-                <select id="seedCount" aria-label="Cantidad a sembrar" title="Cantidad a sembrar" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-primary);">
+            <div class="flex items-center gap-3 mb-3 flex-wrap text-sm" aria-label="Demostración de carga de datos">
+                <label for="seedCount" class="text-gray-600 dark:text-gray-400">Cantidad:</label>
+                <select id="seedCount" aria-label="Cantidad a sembrar" title="Cantidad a sembrar" 
+                    class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                     <option value="3">3</option>
                     <option value="5" selected>5</option>
                     <option value="10">10</option>
                 </select>
-                <button id="seedFetch" class="btn btn-text" title="Sembrar con Fetch API">Sembrar (Fetch)</button>
-                <button id="seedXHR" class="btn btn-text" title="Sembrar con XMLHttpRequest">Sembrar (XHR)</button>
-                <button id="clearAll" class="btn btn-text" title="Vaciar todas las tareas">Vaciar todo</button>
+                <button id="seedFetch" class="text-gray-600 dark:text-gray-400 hover:text-primary hover:underline" title="Sembrar con Fetch API">Sembrar (Fetch)</button>
+                <button id="seedXHR" class="text-gray-600 dark:text-gray-400 hover:text-primary hover:underline" title="Sembrar con XMLHttpRequest">Sembrar (XHR)</button>
+                <button id="clearAll" class="text-red-600 dark:text-red-400 hover:text-red-700 hover:underline" title="Vaciar todas las tareas">Vaciar todo</button>
             </div>
-            <p class="demo-help" style="margin: 0 0 0.75rem 0; color: var(--text-secondary); font-size: 0.85rem;">
-                Demostración: Local (sin red) usa <code>localStorage</code>, Fetch usa <code>fetch()</code>, y AJAX usa <code>XMLHttpRequest</code>.
+            <p class="mb-3 text-gray-600 dark:text-gray-400 text-xs">
+                Demostración: Local (sin red) usa <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">localStorage</code>, Fetch usa <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">fetch()</code>, y AJAX usa <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">XMLHttpRequest</code>.
             </p>
 
-            <!-- Lista de tareas (renderizada por JS) -->
-            <ul id="taskList" class="task-list">
+            <!-- Lista de tareas (renderizada dinámicamente por JS)
+                 Punto de montaje para el render de tareas.
+                 - space-y-3: espacio vertical entre elementos hijos
+                 - Cada tarea se renderiza con clases Tailwind en taskManager.js
+                 - Ver método renderTasks() para estructura de cada item
+            -->
+            <ul id="taskList" class="space-y-3">
                 <!-- Las tareas se agregarán aquí dinámicamente -->
             </ul>
         </main>
 
-        <!-- Overlay de carga para operaciones de demostración -->
-        <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
-            <div class="spinner" aria-label="Cargando"></div>
+        <!-- Overlay de carga para operaciones de demostración
+             Spinner con utilidades Tailwind:
+             - fixed inset-0: cubre toda la pantalla
+             - bg-black/20: fondo negro con 20% de opacidad
+             - backdrop-blur-sm: efecto de desenfoque del fondo
+             - hidden/flex: alternado por JS en setDemoLoading()
+             - animate-spin: animación de rotación continua
+             - border-t-primary: borde superior de color primario (crea efecto spinner)
+        -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm hidden items-center justify-center z-50" aria-hidden="true">
+            <div class="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin" aria-label="Cargando"></div>
         </div>
 
-        <div class="notification" id="notification"></div>
+        <!-- Notificación (Toast)
+             Sistema de notificaciones con Tailwind:
+             - Estado inicial: translate-y-32 opacity-0 (oculto abajo)
+             - Estado visible: translate-y-0 opacity-100 (aplicado por JS)
+             - Colores contextuales aplicados por showNotification():
+               * bg-green-500 text-white: éxito
+               * bg-red-500 text-white: error
+             - transition-all duration-300: animación suave de entrada/salida
+        -->
+        <div id="notification" class="fixed bottom-8 right-8 px-6 py-4 rounded-lg shadow-lg transform translate-y-32 opacity-0 transition-all duration-300 z-50"></div>
     </div>
 
     <!-- Orden de scripts importante:

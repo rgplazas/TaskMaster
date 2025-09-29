@@ -9,7 +9,15 @@
  * - Se usa una clase para encapsular el estado y los métodos de interacción.
  * - No se usan módulos ES para permitir ejecución directa con file:// sin CORS.
  * - Se separa la lógica (este archivo) del acceso a datos (api.js) y del arranque (app.js).
- * - Se incluyen utilidades de accesibilidad (focus-visible, aria-labels, escapeHtml).
+ * - Se incluyen utilidades de accesibilidad (aria-labels, escapeHtml).
+ *
+ * Migración a Tailwind CSS 4.1 (UI):
+ * - Render de lista con utilidades Tailwind (flex, gap, rounded, bg, border, etc.).
+ * - Notificaciones con clases Tailwind y transiciones (translate-y, opacity).
+ * - Overlay con utilidades hidden/flex y animate-spin.
+ * - Tema claro/oscuro con clase 'dark' en <html>, preferencia persistida en localStorage.
+ * - Filtros con alternancia de clases bg-primary/text-white vs transparente.
+ * - Se preservan IDs y data-attributes para no romper la lógica existente.
  */
 /**
  * Administrador de tareas: maneja estado, eventos y renderizado.
@@ -174,15 +182,26 @@ class TaskManager {
 
     /**
      * Renderiza la lista de tareas en el DOM y vincula eventos por ítem.
+     * 
+     * Implementación con Tailwind CSS:
+     * - Cada tarea es un <li> con clases: flex, items-center, gap-4, p-4
+     * - Fondo adaptativo: bg-white dark:bg-gray-800
+     * - Bordes: border border-gray-200 dark:border-gray-700
+     * - Animación de entrada: animate-[fadeIn_0.3s_ease-out]
+     * - Estado completado: opacity-70, line-through, text-gray-500
+     * - Botones de acción con hover effects y colores contextuales
+     * 
+     * @returns {void}
      */
     renderTasks() {
         const taskList = document.getElementById('taskList');
         const filteredTasks = this.getFilteredTasks();
 
+        // Estado vacío con utilidades Tailwind
         if (filteredTasks.length === 0) {
             const emptyState = `
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list"></i>
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-clipboard-list text-5xl mb-4 opacity-50"></i>
                     <p>No hay tareas ${this.currentFilter !== 'all' ? this.currentFilter : ''}</p>
                 </div>
             `;
@@ -191,20 +210,23 @@ class TaskManager {
             return;
         }
 
+        // Renderizar cada tarea con estructura Tailwind
+        // Clases principales: flex (layout), gap-4 (espaciado), p-4 (padding)
+        // Tema adaptativo: bg-white/dark:bg-gray-800, border-gray-200/dark:border-gray-700
         taskList.innerHTML = filteredTasks.map(task => `
-            <li class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+            <li class="task-item flex items-center gap-4 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg transition-all duration-200 animate-[fadeIn_0.3s_ease-out] ${task.completed ? 'opacity-70' : ''}" data-id="${task.id}">
                 <input 
                     type="checkbox" 
-                    class="task-checkbox" 
+                    class="task-checkbox w-5 h-5 cursor-pointer accent-primary" 
                     ${task.completed ? 'checked' : ''}
                     aria-label="Marcar como ${task.completed ? 'pendiente' : 'completada'}"
                 >
-                <span class="task-text">${this.escapeHtml(task.text)}</span>
-                <div class="task-actions">
-                    <button class="edit-btn" aria-label="Editar tarea">
+                <span class="task-text flex-1 break-words ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''}">${this.escapeHtml(task.text)}</span>
+                <div class="task-actions flex gap-2">
+                    <button class="edit-btn p-2 text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition" aria-label="Editar tarea">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-btn" aria-label="Eliminar tarea">
+                    <button class="delete-btn p-2 text-gray-500 dark:text-gray-400 hover:text-secondary hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition" aria-label="Eliminar tarea">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -233,17 +255,38 @@ class TaskManager {
     }
 
     /**
-     * Muestra una notificación temporal en pantalla.
+     * Muestra una notificación temporal en pantalla usando Tailwind.
+     * 
+     * Sistema de notificaciones (Toast):
+     * - Clases base: fixed, bottom-8, right-8, px-6, py-4, rounded-lg, shadow-lg
+     * - Transiciones: transition-all duration-300
+     * - Estados:
+     *   * Oculto: translate-y-32 opacity-0
+     *   * Visible: translate-y-0 opacity-100
+     * - Colores contextuales:
+     *   * Éxito: bg-green-500 text-white
+     *   * Error: bg-red-500 text-white
+     * 
      * @param {string} message - Texto de la notificación.
      * @param {'success'|'error'} [type='success'] - Tipo de mensaje (afecta estilos).
+     * @returns {void}
      */
     showNotification(message, type = 'success') {
         const notification = document.getElementById('notification');
         notification.textContent = message;
-        notification.className = `notification ${type} show`;
+        
+        // Clases base + contextuales Tailwind
+        const baseClasses = 'fixed bottom-8 right-8 px-6 py-4 rounded-lg shadow-lg transition-all duration-300 z-50';
+        const typeClasses = type === 'error' 
+            ? 'bg-red-500 text-white' 
+            : 'bg-green-500 text-white';
+        const visibleClasses = 'translate-y-0 opacity-100';
+        const hiddenClasses = 'translate-y-32 opacity-0';
+        
+        notification.className = `${baseClasses} ${typeClasses} ${visibleClasses}`;
 
         setTimeout(() => {
-            notification.classList.remove('show');
+            notification.className = `${baseClasses} ${typeClasses} ${hiddenClasses}`;
         }, 3000);
     }
 
@@ -266,15 +309,22 @@ class TaskManager {
             }
         });
 
-        // Filtros
+        // Filtros - Alternancia de estado activo con clases Tailwind
+        // Botón activo: bg-primary text-white border-primary
+        // Botón inactivo: bg-transparent text-gray-900 dark:text-gray-100
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const filter = e.target.dataset.filter;
+                const target = e.currentTarget;
+                const filter = target.dataset.filter;
                 this.filterTasks(filter);
                 
-                // Actualizar botones activos
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+                // Actualizar estilos con Tailwind
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white', 'border-primary');
+                    b.classList.add('bg-transparent', 'text-gray-900', 'dark:text-gray-100');
+                });
+                target.classList.remove('bg-transparent', 'text-gray-900', 'dark:text-gray-100');
+                target.classList.add('bg-primary', 'text-white', 'border-primary');
             });
         });
 
@@ -340,24 +390,32 @@ class TaskManager {
             });
         }
 
-        // Tema oscuro/claro
+        // Tema oscuro/claro (Tailwind dark mode con clase 'dark')
+        // Tailwind detecta la clase 'dark' en <html> para aplicar variantes dark:
+        // Configuración en index.html: tailwind.config = { darkMode: 'class' }
+        // Persistencia: localStorage guarda 'theme' = 'light' | 'dark'
+        // Detección automática: prefers-color-scheme si no hay preferencia guardada
         const themeToggle = document.getElementById('themeToggle');
         const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
         
         // Cargar preferencia guardada o usar la del sistema
         const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
+        const initialDark = currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches);
+        if (initialDark) {
+            document.documentElement.classList.add('dark');
             themeToggle.checked = true;
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeToggle.checked = false;
         }
 
-        // Cambiar tema
+        // Cambiar tema y persistir preferencia
         themeToggle.addEventListener('change', (e) => {
             if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
             } else {
-                document.documentElement.removeAttribute('data-theme');
+                document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
             }
         });
@@ -365,9 +423,15 @@ class TaskManager {
 
     /**
      * Activa/desactiva estado de carga para los controles de la barra DEMO.
-     * Cambia texto de botones, deshabilita controles y actualiza cursores.
-     * @param {boolean} loading
-     * @param {{running?: 'fetch'|'xhr'}} [opts]
+     * 
+     * Overlay con Tailwind:
+     * - Alternancia entre clases 'hidden' (display: none) y 'flex' (display: flex)
+     * - El overlay tiene: fixed inset-0 bg-black/20 backdrop-blur-sm
+     * - Spinner con: animate-spin (rotación continua)
+     * 
+     * @param {boolean} loading - true para mostrar overlay, false para ocultar
+     * @param {{running?: 'fetch'|'xhr'}} [opts] - Opciones para indicar qué operación está corriendo
+     * @returns {void}
      */
     setDemoLoading(loading, opts = {}) {
         const seedFetchBtn = document.getElementById('seedFetch');
@@ -391,15 +455,16 @@ class TaskManager {
             seedXHRBtn.textContent = loading && opts.running === 'xhr' ? 'Sembrando… (XHR)' : seedXHRBtn.dataset.originalText;
         }
 
-        // Mostrar/ocultar overlay de carga
+        // Mostrar/ocultar overlay de carga (Tailwind utilities)
         if (overlay) {
             if (loading) {
-                overlay.classList.add('show');
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
                 overlay.setAttribute('aria-hidden', 'false');
             } else {
-                // Pequeño retraso para evitar parpadeo
                 setTimeout(() => {
-                    overlay.classList.remove('show');
+                    overlay.classList.remove('flex');
+                    overlay.classList.add('hidden');
                     overlay.setAttribute('aria-hidden', 'true');
                 }, 150);
             }
@@ -426,18 +491,15 @@ class TaskManager {
                 const task = this.tasks.find(t => t.id === taskId);
                 const taskText = taskItem.querySelector('.task-text');
                 
+                // Crear input de edición con clases Tailwind
+                // - w-full: ancho completo
+                // - px-3 py-2: padding horizontal y vertical
+                // - border con colores adaptativos al tema
+                // - focus:outline-none focus:ring-2 focus:ring-primary: anillo de foco
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = task.text;
-                input.className = 'edit-input';
-                
-                // Aplicar estilos al input
-                input.style.width = '100%';
-                input.style.padding = '0.5rem';
-                input.style.border = '1px solid var(--border-color)';
-                input.style.borderRadius = '4px';
-                input.style.backgroundColor = 'var(--card-bg)';
-                input.style.color = 'var(--text-primary)';
+                input.className = 'edit-input w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary';
                 
                 // Reemplazar el texto con el input
                 taskText.replaceWith(input);

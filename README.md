@@ -1,8 +1,8 @@
-﻿# TaskMaster (HTML + CSS + JavaScript puro)
+﻿# TaskMaster (HTML + Tailwind CSS 4.1 + JavaScript)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
 
-Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
+Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador, ahora con interfaz basada en **Tailwind CSS 4.1** sin frameworks de JavaScript ni Node:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
 - Fetch API: pidiendo datos a un endpoint público (JSONPlaceholder).
@@ -16,18 +16,16 @@ La aplicación está pensada para que un alumno pueda leer el código y entender
 
 ```
 TaskMaster/
-├─ index.html                # Estructura semántica y carga de scripts
-├─ css/
-│  └─ styles.css             # Estilos, temas y accesibilidad
+├─ index.html                # Estructura semántica, Tailwind CSS 4.1 (CDN) y puntos de montaje
 └─ js/
    ├─ api.js                 # Capa de datos (localStorage, Fetch, XHR)
-   ├─ taskManager.js         # Lógica de negocio y render de UI
+   ├─ taskManager.js         # Lógica de negocio y render de UI (Tailwind utilities)
    └─ app.js                 # Arranque de la aplicación
 ```
 
 ---
 
-## Filosofía y separación de responsabilidades
+## Filosofía y separación de responsabilidades (con Tailwind)
 
 - `index.html`
   - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración (sembrar datos por Fetch/XHR y vaciar).
@@ -47,8 +45,11 @@ TaskMaster/
 
 - `js/taskManager.js`
   - Clase `TaskManager` que gestiona estado, eventos y render del DOM.
-  - Maneja filtros, edición en línea, eliminación, contador y notificaciones.
-  - Implementa la barra de demostración y un overlay de carga mientras se ejecutan Fetch/XHR.
+  - Renderiza la lista con **utilidades Tailwind** (flex, gap, rounded, bg, border, dark:, etc.).
+  - Notificaciones con clases Tailwind y transiciones (translate-y, opacity).
+  - Overlay con `hidden`/`flex` y `animate-spin`.
+  - Tema con clase `dark` en `<html>`, preferencia persistida en `localStorage`.
+  - Filtros con alternancia de clases `bg-primary`/`text-white` vs transparente.
   - Se publica la clase como `window.TaskManager`.
 
 - `js/app.js`
@@ -59,6 +60,8 @@ TaskMaster/
 ## Cómo ejecutar
 
 1. Abre `index.html` con doble clic (se abrirá con `file://`).
+   - Requiere Internet para cargar los CDNs de Tailwind CSS y Font Awesome.
+   - Si no hay Internet, la app funciona pero los estilos de Tailwind no se aplicarán.
 2. Añade tareas, márcalas como completadas, edítalas o elimínalas.
 3. Prueba la barra de demostración:
    - Elige la “Cantidad” (3/5/10).
@@ -334,13 +337,16 @@ flowchart TD
 - Escapado de HTML en `TaskManager.escapeHtml()`.
 - Estados de carga y deshabilitado de controles en operaciones asíncronas.
 - Contador de tareas y filtros que no dependen de cómo llegan los datos.
-- Comentarios JSDoc y de secciones que explican el “por qué”.
+- Notificaciones con **utilidades Tailwind** (bg-green-500/bg-red-500, transiciones).
+- Modo claro/oscuro con clase `dark` en `<html>`.
+- Comentarios JSDoc y de secciones que explican el "por qué".
+- **Uso de `const` en lugar de `let`/`var`** para variables que no cambian de valor.
 
 ---
 
-## Ideas de ejercicios guiados
+## ideas de ejercicios guiados
 
-- Prioridades de tareas
+{{ ... }}
   - Objetivo: Añadir un campo `priority` (low|medium|high) y un selector al crear/editar.
   - Pistas: Extiende el objeto de tarea en `api.js` y ajusta el render en `taskManager.js`. Usa clases CSS para colorear etiquetas.
 
@@ -387,5 +393,82 @@ flowchart TD
 
 - Overlay no se muestra
   - Síntoma: No ves el spinner durante Fetch/XHR.
-  - Causa: Clase `.show` no aplicada o CSS no cargado.
-  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y la sección de CSS del overlay.
+  - Causa: El overlay usa utilidades `hidden`/`flex` de Tailwind y requiere que el CDN esté cargado.
+  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y que el CDN de Tailwind cargue correctamente.
+
+- Estilos no se aplican
+  - Síntoma: La app se ve sin estilos o con HTML plano.
+  - Causa: Falta del CDN de Tailwind CSS o sin conexión a Internet.
+  - Solución: Verifica el `<script>` de Tailwind en `index.html` y tu conexión.
+
+---
+
+## Tema claro/oscuro
+
+- El switch en el header controla la clase `dark` sobre `<html>`.
+- Se persiste en `localStorage` como `theme = 'light' | 'dark'`.
+- Si no hay preferencia guardada, respeta `prefers-color-scheme` del sistema.
+
+---
+
+## Utilidades Tailwind CSS más usadas en el proyecto
+
+### Layout y Espaciado
+- **flex**: contenedor flexible para layouts
+- **gap-{n}**: espaciado entre elementos flex (gap-2, gap-3, gap-4)
+- **p-{n}**, **px-{n}**, **py-{n}**: padding (p-4, px-6, py-3)
+- **m-{n}**, **mb-{n}**: margin (mb-3, mb-6)
+- **space-y-{n}**: espacio vertical entre hijos (space-y-3)
+
+### Colores y Tema
+- **bg-{color}-{shade}**: colores de fondo (bg-white, bg-gray-50, bg-primary)
+- **text-{color}-{shade}**: colores de texto (text-gray-900, text-primary)
+- **dark:{utility}**: variantes para modo oscuro (dark:bg-gray-900, dark:text-gray-100)
+- **border-{color}-{shade}**: colores de borde (border-gray-200, dark:border-gray-700)
+
+### Bordes y Redondeo
+- **rounded-{size}**: bordes redondeados (rounded-lg, rounded-full)
+- **border**: borde de 1px
+- **border-{side}**: borde en lado específico (border-b)
+
+### Transiciones y Animaciones
+- **transition**: transición suave de propiedades
+- **duration-{ms}**: duración de transición (duration-200, duration-300)
+- **animate-spin**: rotación continua (spinner)
+- **animate-[fadeIn_0.3s_ease-out]**: animación personalizada
+
+### Estados Interactivos
+- **hover:{utility}**: estilos al pasar el mouse (hover:bg-gray-100, hover:text-primary)
+- **focus:{utility}**: estilos al enfocar (focus:outline-none, focus:ring-2)
+- **peer**: marca elemento para estados peer-*
+- **peer-checked:{utility}**: estilos cuando peer está checked
+
+### Posicionamiento
+- **fixed**: posición fija
+- **absolute**: posición absoluta
+- **relative**: posición relativa
+- **inset-0**: top/right/bottom/left = 0
+- **z-{n}**: índice z (z-50)
+
+### Visibilidad y Display
+- **hidden**: display: none
+- **flex**: display: flex
+- **opacity-{n}**: opacidad (opacity-0, opacity-50, opacity-70, opacity-100)
+- **sr-only**: oculto visualmente pero accesible
+
+### Transformaciones
+- **translate-{axis}-{n}**: traslación (translate-y-32, translate-x-6)
+- **transform**: habilita transformaciones
+
+---
+
+## Changelog
+
+- **v3 (Tailwind CSS 4.1)**
+  - Migración completa de CSS puro a **Tailwind CSS 4.1** (CDN Play).
+  - Utilidades de diseño: flex, gap, rounded, bg, border, dark:, transitions.
+  - Notificaciones con clases Tailwind (bg-green-500/bg-red-500, translate-y, opacity).
+  - Overlay con `hidden`/`flex` y `animate-spin`.
+  - Tema con clase `dark` en `<html>` y persistencia en `localStorage`.
+  - **Eliminada carpeta `css/`**: Sin archivos CSS personalizados, 100% Tailwind.
+  - Documentación completa con comentarios profesionales en HTML y JS.
