@@ -1,8 +1,9 @@
-﻿# TaskMaster (HTML + CSS + JavaScript puro)
+# TaskMaster (HTML + Materialize v1.0.0 + JavaScript)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
+[![Materialize](https://img.shields.io/badge/Materialize-v1.0.0-ee6e73)](#)
 
-Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
+Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador usando Materialize v1.0.0 para el diseño Material Design:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
 - Fetch API: pidiendo datos a un endpoint público (JSONPlaceholder).
@@ -16,33 +17,31 @@ La aplicación está pensada para que un alumno pueda leer el código y entender
 
 ```
 TaskMaster/
-├─ index.html                # Estructura semántica y carga de scripts
-├─ css/
-│  └─ styles.css             # Estilos, temas y accesibilidad
+├─ index.html                # Estructura semántica, Materialize v1.0.0 y carga de scripts
 └─ js/
    ├─ api.js                 # Capa de datos (localStorage, Fetch, XHR)
    ├─ taskManager.js         # Lógica de negocio y render de UI
    └─ app.js                 # Arranque de la aplicación
 ```
 
+**Nota:** Este proyecto utiliza **únicamente Materialize v1.0.0** desde CDN para todos los estilos. No hay archivos CSS personalizados, solo estilos inline mínimos en el `<head>` del HTML para funcionalidad específica (notificaciones, loading overlay, estados de tareas).
+
 ---
 
 ## Filosofía y separación de responsabilidades
 
 - `index.html`
-  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración (sembrar datos por Fetch/XHR y vaciar).
-  - Carga scripts “clásicos” en orden: primero la capa de datos (`api.js`), luego la lógica (`taskManager.js`) y, por último, el arranque (`app.js`).
-  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS. Evitamos servidores externos para mantener la consigna “solo HTML/CSS/JS”.
-
-- `css/styles.css`
-  - Usa variables CSS (paleta, bordes, sombras, transiciones) y un modo oscuro controlado por `[data-theme="dark"]`.
-  - Estilo minimalista: preferimos bordes sutiles y buen contraste, con atención a accesibilidad (`:focus-visible`).
-  - Incluye un overlay de carga con spinner para las demostraciones Fetch/XHR.
+  - Utiliza **SOLO Materialize v1.0.0** desde CDN para todos los estilos y componentes Material Design.
+  - Implementa el sistema de grid de Materialize (container, row, col) para un layout responsive.
+  - Usa componentes nativos de Materialize: card-panel, collection, buttons con waves effect, Material Icons.
+  - Incluye estilos inline mínimos (`<style>`) solo para funcionalidad específica que Materialize no cubre.
+  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración.
+  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS. Evitamos servidores externos para mantener la consigna "solo HTML/CSS/JS".
 
 - `js/api.js`
   - Encapsula todo el acceso a datos con una API asíncrona: obtener, guardar, añadir, actualizar y eliminar tareas.
   - Simula latencia de red para acostumbrar a trabajar con `async/await` y posibles retardos.
-  - Expone métodos de “semilla” para traer datos de ejemplo de un endpoint público con `fetch()` o con `XMLHttpRequest`.
+  - Expone métodos de "semilla" para traer datos de ejemplo de un endpoint público con `fetch()` o con `XMLHttpRequest`.
   - Se publica una instancia global `window.taskAPI` para scripts clásicos.
 
 - `js/taskManager.js`
@@ -61,9 +60,9 @@ TaskMaster/
 1. Abre `index.html` con doble clic (se abrirá con `file://`).
 2. Añade tareas, márcalas como completadas, edítalas o elimínalas.
 3. Prueba la barra de demostración:
-   - Elige la “Cantidad” (3/5/10).
-   - Pulsa “Sembrar (Fetch)” o “Sembrar (XHR)”. Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
-   - “Vaciar todo” borra todas las tareas en `localStorage`.
+   - Elige la "Cantidad" (3/5/10).
+   - Pulsa "Sembrar (Fetch)" o "Sembrar (XHR)". Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
+   - "Vaciar todo" borra todas las tareas en `localStorage`.
 
 Notas:
 - Todo persiste en `localStorage` del navegador, por lo que al recargar seguirás viendo tus tareas.
@@ -73,11 +72,13 @@ Notas:
 
 ## Conceptos clave (para alumnos)
 
-- Asincronía: Todos los métodos de la “API” son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
-- Diseño en capas: Separar **vista** (HTML/CSS), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
-- Accesibilidad: se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
-- Persistencia local: `localStorage` permite guardar el estado sin servidores.
-- Compatibilidad: evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione “al abrir y listo”.
+- **Materialize v1.0.0:** Framework CSS basado en Material Design de Google que proporciona componentes UI modernos, animaciones waves y sistema de grid responsive.
+- **Asincronía:** Todos los métodos de la "API" son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
+- **Diseño en capas:** Separar **vista** (HTML/Materialize), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
+- **Accesibilidad:** Materialize incluye características de Material Design. Se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
+- **Persistencia local:** `localStorage` permite guardar el estado sin servidores.
+- **Compatibilidad:** Evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione "al abrir y listo".
+- **Sin dependencias locales:** Todo se carga desde CDN (Materialize, Material Icons), no hay archivos CSS ni librerías adicionales que instalar.
 
 ---
 
