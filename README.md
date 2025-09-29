@@ -1,8 +1,9 @@
-﻿# TaskMaster (HTML + CSS + JavaScript puro)
+# TaskMaster (HTML + Bulma v1.0.4 + JavaScript)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
+[![Bulma](https://img.shields.io/badge/Bulma-v1.0.4-00d1b2)](#)
 
-Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
+Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador usando Bulma v1.0.4 para el diseño responsive:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
 - Fetch API: pidiendo datos a un endpoint público (JSONPlaceholder).
@@ -16,33 +17,30 @@ La aplicación está pensada para que un alumno pueda leer el código y entender
 
 ```
 TaskMaster/
-├─ index.html                # Estructura semántica y carga de scripts
-├─ css/
-│  └─ styles.css             # Estilos, temas y accesibilidad
+├─ index.html                # Estructura semántica, Bulma v1.0.4 y carga de scripts
 └─ js/
    ├─ api.js                 # Capa de datos (localStorage, Fetch, XHR)
    ├─ taskManager.js         # Lógica de negocio y render de UI
    └─ app.js                 # Arranque de la aplicación
 ```
 
+**Nota:** Este proyecto utiliza **únicamente Bulma v1.0.4** desde CDN para todos los estilos. No hay archivos CSS personalizados, solo estilos inline mínimos en el `<head>` del HTML para funcionalidad específica (notificaciones, loading overlay, estados de tareas).
+
 ---
 
 ## Filosofía y separación de responsabilidades
 
 - `index.html`
-  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración (sembrar datos por Fetch/XHR y vaciar).
-  - Carga scripts “clásicos” en orden: primero la capa de datos (`api.js`), luego la lógica (`taskManager.js`) y, por último, el arranque (`app.js`).
-  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS. Evitamos servidores externos para mantener la consigna “solo HTML/CSS/JS”.
-
-- `css/styles.css`
-  - Usa variables CSS (paleta, bordes, sombras, transiciones) y un modo oscuro controlado por `[data-theme="dark"]`.
-  - Estilo minimalista: preferimos bordes sutiles y buen contraste, con atención a accesibilidad (`:focus-visible`).
-  - Incluye un overlay de carga con spinner para las demostraciones Fetch/XHR.
+  - Utiliza **SOLO Bulma v1.0.4** desde CDN para todos los estilos y componentes.
+  - Implementa el sistema de clases de Bulma (container, box, field, button, notification, level) para un layout responsive.
+  - Usa componentes nativos de Bulma: box, field has-addons, button, level, notification.
+  - Incluye estilos inline mínimos (`<style>`) solo para funcionalidad específica que Bulma no cubre.
+  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración.
 
 - `js/api.js`
   - Encapsula todo el acceso a datos con una API asíncrona: obtener, guardar, añadir, actualizar y eliminar tareas.
   - Simula latencia de red para acostumbrar a trabajar con `async/await` y posibles retardos.
-  - Expone métodos de “semilla” para traer datos de ejemplo de un endpoint público con `fetch()` o con `XMLHttpRequest`.
+  - Expone métodos de "semilla" para traer datos de ejemplo de un endpoint público con `fetch()` o con `XMLHttpRequest`.
   - Se publica una instancia global `window.taskAPI` para scripts clásicos.
 
 - `js/taskManager.js`
@@ -61,9 +59,9 @@ TaskMaster/
 1. Abre `index.html` con doble clic (se abrirá con `file://`).
 2. Añade tareas, márcalas como completadas, edítalas o elimínalas.
 3. Prueba la barra de demostración:
-   - Elige la “Cantidad” (3/5/10).
-   - Pulsa “Sembrar (Fetch)” o “Sembrar (XHR)”. Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
-   - “Vaciar todo” borra todas las tareas en `localStorage`.
+   - Elige la "Cantidad" (3/5/10).
+   - Pulsa "Sembrar (Fetch)" o "Sembrar (XHR)". Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
+   - "Vaciar todo" borra todas las tareas en `localStorage`.
 
 Notas:
 - Todo persiste en `localStorage` del navegador, por lo que al recargar seguirás viendo tus tareas.
@@ -73,16 +71,19 @@ Notas:
 
 ## Conceptos clave (para alumnos)
 
-- Asincronía: Todos los métodos de la “API” son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
-- Diseño en capas: Separar **vista** (HTML/CSS), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
-- Accesibilidad: se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
-- Persistencia local: `localStorage` permite guardar el estado sin servidores.
-- Compatibilidad: evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione “al abrir y listo”.
+- **Bulma v1.0.4:** Framework CSS profesional que proporciona clases utility y componentes UI responsive sin necesidad de CSS personalizado extenso.
+- **Asincronía:** Todos los métodos de la "API" son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
+- **Diseño en capas:** Separar **vista** (HTML/Bulma), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
+- **Accesibilidad:** Bulma incluye características de accesibilidad por defecto. Se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
+- **Persistencia local:** `localStorage` permite guardar el estado sin servidores.
+- **Compatibilidad:** Evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione "al abrir y listo".
+- **Sin dependencias locales:** Todo se carga desde CDN (Bulma, Font Awesome), no hay archivos CSS ni librerías adicionales que instalar.
 
 ---
 
 ## Flujo principal
 
+{{ ... }}
 1. `app.js` crea `new window.TaskManager()` cuando el DOM está listo.
 2. `TaskManager.init()` carga tareas desde `taskAPI.getTasks()`, dibuja la lista y configura los eventos.
 3. Al añadir/editar/completar/eliminar, `TaskManager` llama a `taskAPI` y luego vuelve a renderizar.
@@ -337,9 +338,6 @@ flowchart TD
 - Comentarios JSDoc y de secciones que explican el “por qué”.
 
 ---
-
-## Ideas de ejercicios guiados
-
 - Prioridades de tareas
   - Objetivo: Añadir un campo `priority` (low|medium|high) y un selector al crear/editar.
   - Pistas: Extiende el objeto de tarea en `api.js` y ajusta el render en `taskManager.js`. Usa clases CSS para colorear etiquetas.
@@ -348,7 +346,6 @@ flowchart TD
   - Objetivo: Filtrar tareas en tiempo real por coincidencia parcial en `text`.
   - Pistas: Añade un input de búsqueda y filtra sobre `this.tasks` antes de `renderTasks()`.
 
-- Exportar/Importar JSON
   - Objetivo: Permitir descargar las tareas como `.json` y volver a cargarlas.
   - Pistas: `JSON.stringify(this.tasks)` + `URL.createObjectURL(new Blob(...))` para exportar; `FileReader` para importar y luego `taskAPI.saveTasks()`.
 

@@ -7,70 +7,123 @@
   - Cargar estilos y scripts en el orden correcto.
 
   Decisiones y razones:
-  - Sin frameworks ni módulos ES para permitir abrir con file:// sin servidores.
+  - Utiliza SOLO Bulma v1.0.4 para el diseño responsive y componentes UI.
   - Scripts clásicos en orden: api (datos) -> taskManager (lógica/UI) -> app (arranque).
-  - Se usan clases y data-attributes para separar estilo (CSS) y comportamiento (JS).
+  - Se usan clases Bulma y data-attributes para separar estilo y comportamiento.
 -->
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaskMaster - Gestor de Tareas</title>
+    <!-- Bulma CSS v1.0.4 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+        /* Estilos mínimos para funcionalidad específica que Bulma no cubre */
+        body { padding: 2rem 1rem; min-height: 100vh; }
+        .task-item { margin-bottom: 0.75rem; padding: 1rem; }
+        .task-item.completed { opacity: 0.6; }
+        .task-item.completed .task-text { text-decoration: line-through; }
+        .task-actions { display: flex; gap: 0.5rem; }
+        .edit-btn, .delete-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; }
+        .edit-btn:hover { color: #3273dc; }
+        .delete-btn:hover { color: #f14668; }
+        .notification-fixed { position: fixed; bottom: 2rem; right: 2rem; min-width: 300px; transform: translateY(100px);
+                              opacity: 0; transition: all 0.3s ease; z-index: 1000; }
+        .notification-fixed.show { transform: translateY(0); opacity: 1; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none;
+                          align-items: center; justify-content: center; z-index: 1100; }
+        .loading-overlay.show { display: flex; }
+        .spinner { width: 3rem; height: 3rem; border: 4px solid #dbdbdb; border-top-color: #3273dc;
+                   border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #7a7a7a; }
+        .empty-state i { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
+        .filter-btn.active { background-color: #3273dc; border-color: #3273dc; color: white; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Encabezado: título y selector de tema -->
-        <header class="header">
-            <h1><i class="fas fa-tasks"></i> TaskMaster</h1>
-            <div class="theme-toggle">
-                <i class="fas fa-moon"></i>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle" />
-                    <span class="slider round"></span>
-                </label>
-                <i class="fas fa-sun"></i>
-            </div>
+    <div class="container is-max-desktop">
+        <!-- Encabezado: título -->
+        <header class="box has-background-link has-text-white mb-5">
+            <h1 class="title has-text-white is-size-3">
+                <span class="icon is-medium"><i class="fas fa-tasks"></i></span>
+                TaskMaster
+            </h1>
         </header>
 
         <!-- Zona principal: entrada, filtros, estadísticas y lista -->
         <main>
-            <div class="add-task-container">
-                <input type="text" id="taskInput" placeholder="Añade una nueva tarea..." autocomplete="off" />
-                <button id="addTaskBtn" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Añadir
-                </button>
+            <!-- Input para añadir tareas -->
+            <div class="field has-addons mb-5">
+                <div class="control is-expanded">
+                    <input type="text" id="taskInput" class="input" placeholder="Añade una nueva tarea..." autocomplete="off" />
+                </div>
+                <div class="control">
+                    <button id="addTaskBtn" class="button is-primary">
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                        <span>Añadir</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Filtros de visualización -->
-            <div class="filters">
-                <button class="filter-btn active" data-filter="all">Todas</button>
-                <button class="filter-btn" data-filter="pending">Pendientes</button>
-                <button class="filter-btn" data-filter="completed">Completadas</button>
+            <div class="buttons mb-4">
+                <button class="button filter-btn active" data-filter="all">Todas</button>
+                <button class="button filter-btn" data-filter="pending">Pendientes</button>
+                <button class="button filter-btn" data-filter="completed">Completadas</button>
             </div>
 
             <!-- Resumen de estado -->
-            <div class="task-stats">
-                <span id="taskCount">0 tareas</span>
-                <button id="clearCompleted" class="btn btn-text">Limpiar completadas</button>
+            <div class="level mb-4">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span id="taskCount" class="has-text-grey">0 tareas</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <button id="clearCompleted" class="button is-text is-small">Limpiar completadas</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Barra de demostración: sembrar datos por Fetch o XHR y vaciar -->
-            <div class="demo-toolbar" aria-label="Demostración de carga de datos">
-                <label for="seedCount" style="color: var(--text-secondary);">Cantidad:</label>
-                <select id="seedCount" aria-label="Cantidad a sembrar" title="Cantidad a sembrar" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-primary);">
-                    <option value="3">3</option>
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
-                </select>
-                <button id="seedFetch" class="btn btn-text" title="Sembrar con Fetch API">Sembrar (Fetch)</button>
-                <button id="seedXHR" class="btn btn-text" title="Sembrar con XMLHttpRequest">Sembrar (XHR)</button>
-                <button id="clearAll" class="btn btn-text" title="Vaciar todas las tareas">Vaciar todo</button>
+            <div class="box has-background-light mb-4" aria-label="Demostración de carga de datos">
+                <div class="field is-grouped is-grouped-multiline">
+                    <div class="control">
+                        <label for="seedCount" class="label is-small">Cantidad:</label>
+                    </div>
+                    <div class="control">
+                        <div class="select is-small">
+                            <select id="seedCount" aria-label="Cantidad a sembrar" title="Cantidad a sembrar">
+                                <option value="3">3</option>
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control">
+                        <button id="seedFetch" class="button is-small is-info" title="Sembrar con Fetch API">
+                            Sembrar (Fetch)
+                        </button>
+                    </div>
+                    <div class="control">
+                        <button id="seedXHR" class="button is-small is-link" title="Sembrar con XMLHttpRequest">
+                            Sembrar (XHR)
+                        </button>
+                    </div>
+                    <div class="control">
+                        <button id="clearAll" class="button is-small is-danger" title="Vaciar todas las tareas">
+                            Vaciar todo
+                        </button>
+                    </div>
+                </div>
+                <p class="help mt-2">
+                    <strong>Demostración:</strong> Local (sin red) usa <code>localStorage</code>, Fetch usa <code>fetch()</code>, y AJAX usa <code>XMLHttpRequest</code>.
+                </p>
             </div>
-            <p class="demo-help" style="margin: 0 0 0.75rem 0; color: var(--text-secondary); font-size: 0.85rem;">
-                Demostración: Local (sin red) usa <code>localStorage</code>, Fetch usa <code>fetch()</code>, y AJAX usa <code>XMLHttpRequest</code>.
-            </p>
 
             <!-- Lista de tareas (renderizada por JS) -->
             <ul id="taskList" class="task-list">
@@ -83,7 +136,7 @@
             <div class="spinner" aria-label="Cargando"></div>
         </div>
 
-        <div class="notification" id="notification"></div>
+        <div class="notification is-primary notification-fixed" id="notification"></div>
     </div>
 
     <!-- Orden de scripts importante:

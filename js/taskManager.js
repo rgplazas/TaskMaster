@@ -240,7 +240,8 @@ class TaskManager {
     showNotification(message, type = 'success') {
         const notification = document.getElementById('notification');
         notification.textContent = message;
-        notification.className = `notification ${type} show`;
+        const bulmaType = type === 'error' ? 'is-danger' : 'is-primary';
+        notification.className = `notification ${bulmaType} notification-fixed show`;
 
         setTimeout(() => {
             notification.classList.remove('show');
@@ -340,27 +341,6 @@ class TaskManager {
             });
         }
 
-        // Tema oscuro/claro
-        const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        // Cargar preferencia guardada o usar la del sistema
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            themeToggle.checked = true;
-        }
-
-        // Cambiar tema
-        themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-            }
-        });
     }
 
     /**
@@ -426,6 +406,9 @@ class TaskManager {
                 const task = this.tasks.find(t => t.id === taskId);
                 const taskText = taskItem.querySelector('.task-text');
                 
+                const li = document.createElement('li');
+                li.className = `task-item box ${task.completed ? 'completed' : ''}`;
+                li.dataset.id = task.id;
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = task.text;
@@ -434,7 +417,6 @@ class TaskManager {
                 // Aplicar estilos al input
                 input.style.width = '100%';
                 input.style.padding = '0.5rem';
-                input.style.border = '1px solid var(--border-color)';
                 input.style.borderRadius = '4px';
                 input.style.backgroundColor = 'var(--card-bg)';
                 input.style.color = 'var(--text-primary)';
