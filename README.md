@@ -1,14 +1,15 @@
-﻿# TaskMaster (HTML + CSS + JavaScript puro)
+# TaskMaster (HTML + Foundation v6.9 + JavaScript)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
+[![Foundation](https://img.shields.io/badge/Foundation-v6.9-blue)](#)
 
-Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
+Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador usando Foundation v6.9 para el diseño responsive:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
 - Fetch API: pidiendo datos a un endpoint público (JSONPlaceholder).
 - AJAX clásico (XMLHttpRequest): la forma tradicional previa a Fetch.
 
-La aplicación está pensada para que un alumno pueda leer el código y entender el “por qué” de cada decisión. Incluye documentación en todos los archivos y comentarios JSDoc en la lógica JavaScript.
+La aplicación utiliza **únicamente Foundation v6.9** como framework CSS, sin archivos CSS personalizados adicionales. Está pensada para que un alumno pueda leer el código y entender el "por qué" de cada decisión. Incluye documentación en todos los archivos y comentarios JSDoc en la lógica JavaScript.
 
 ---
 
@@ -16,33 +17,33 @@ La aplicación está pensada para que un alumno pueda leer el código y entender
 
 ```
 TaskMaster/
-├─ index.html                # Estructura semántica y carga de scripts
-├─ css/
-│  └─ styles.css             # Estilos, temas y accesibilidad
+├─ index.html                # Estructura semántica, Foundation v6.9 y carga de scripts
 └─ js/
    ├─ api.js                 # Capa de datos (localStorage, Fetch, XHR)
    ├─ taskManager.js         # Lógica de negocio y render de UI
    └─ app.js                 # Arranque de la aplicación
 ```
 
+**Nota:** Este proyecto utiliza **únicamente Foundation v6.9** desde CDN para todos los estilos. No hay archivos CSS personalizados, solo estilos inline mínimos en el `<head>` del HTML para funcionalidad específica (notificaciones, loading overlay, estados de tareas).
+
 ---
 
 ## Filosofía y separación de responsabilidades
 
 - `index.html`
-  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración (sembrar datos por Fetch/XHR y vaciar).
-  - Carga scripts “clásicos” en orden: primero la capa de datos (`api.js`), luego la lógica (`taskManager.js`) y, por último, el arranque (`app.js`).
-  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS. Evitamos servidores externos para mantener la consigna “solo HTML/CSS/JS”.
-
-- `css/styles.css`
-  - Usa variables CSS (paleta, bordes, sombras, transiciones) y un modo oscuro controlado por `[data-theme="dark"]`.
-  - Estilo minimalista: preferimos bordes sutiles y buen contraste, con atención a accesibilidad (`:focus-visible`).
-  - Incluye un overlay de carga con spinner para las demostraciones Fetch/XHR.
+  - Utiliza **SOLO Foundation v6.9** desde CDN para todos los estilos y componentes.
+  - Implementa el sistema de grid de Foundation (grid-container, grid-x, cell) para un layout responsive.
+  - Usa componentes nativos de Foundation: callout, button, button-group, form controls.
+  - Incluye estilos inline mínimos (`<style>`) solo para funcionalidad específica que Foundation no cubre.
+  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración.
+  - Carga Foundation CSS y JS desde CDN, junto con jQuery (requerido por Foundation).
+  - Carga scripts "clásicos" en orden: api (datos) -> taskManager (lógica/UI) -> app (arranque).
+  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS.
 
 - `js/api.js`
   - Encapsula todo el acceso a datos con una API asíncrona: obtener, guardar, añadir, actualizar y eliminar tareas.
   - Simula latencia de red para acostumbrar a trabajar con `async/await` y posibles retardos.
-  - Expone métodos de “semilla” para traer datos de ejemplo de un endpoint público con `fetch()` o con `XMLHttpRequest`.
+  - Expone métodos de "semilla" para traer datos de ejemplo con `fetch()` o `XMLHttpRequest`.
   - Se publica una instancia global `window.taskAPI` para scripts clásicos.
 
 - `js/taskManager.js`
@@ -61,9 +62,9 @@ TaskMaster/
 1. Abre `index.html` con doble clic (se abrirá con `file://`).
 2. Añade tareas, márcalas como completadas, edítalas o elimínalas.
 3. Prueba la barra de demostración:
-   - Elige la “Cantidad” (3/5/10).
-   - Pulsa “Sembrar (Fetch)” o “Sembrar (XHR)”. Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
-   - “Vaciar todo” borra todas las tareas en `localStorage`.
+   - Elige la "Cantidad" (3/5/10).
+   - Pulsa "Sembrar (Fetch)" o "Sembrar (XHR)". Si hay Internet y CORS permitido (JSONPlaceholder normalmente lo permite), se cargarán tareas de ejemplo.
+   - "Vaciar todo" borra todas las tareas en `localStorage`.
 
 Notas:
 - Todo persiste en `localStorage` del navegador, por lo que al recargar seguirás viendo tus tareas.
@@ -73,11 +74,13 @@ Notas:
 
 ## Conceptos clave (para alumnos)
 
-- Asincronía: Todos los métodos de la “API” son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
-- Diseño en capas: Separar **vista** (HTML/CSS), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
-- Accesibilidad: se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
-- Persistencia local: `localStorage` permite guardar el estado sin servidores.
-- Compatibilidad: evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione “al abrir y listo”.
+- **Foundation v6.9:** Framework CSS profesional que proporciona un sistema de grid responsive, componentes UI y estilos consistentes sin necesidad de CSS personalizado extenso.
+- **Asincronía:** Todos los métodos de la "API" son `async` y devuelven `Promise`, para reflejar el mundo real (servidores que tardan en responder). Esto te obliga a usar `await` y a manejar errores.
+- **Diseño en capas:** Separar **vista** (HTML/Foundation), **lógica** (TaskManager) y **datos** (API) facilita pruebas, mantenimiento y escalabilidad.
+- **Accesibilidad:** Foundation incluye características de accesibilidad por defecto. Se respetan estados de foco, hay etiquetas `aria-label` en controles, y se evita inyectar HTML no escapado (`escapeHtml`).
+- **Persistencia local:** `localStorage` permite guardar el estado sin servidores.
+- **Compatibilidad:** Evitar ES Modules en `file://` evita errores CORS y hace que el proyecto funcione "al abrir y listo".
+- **Sin dependencias locales:** Todo se carga desde CDN (Foundation, jQuery, Font Awesome), no hay archivos CSS ni librerías adicionales que instalar.
 
 ---
 
@@ -86,7 +89,7 @@ Notas:
 1. `app.js` crea `new window.TaskManager()` cuando el DOM está listo.
 2. `TaskManager.init()` carga tareas desde `taskAPI.getTasks()`, dibuja la lista y configura los eventos.
 3. Al añadir/editar/completar/eliminar, `TaskManager` llama a `taskAPI` y luego vuelve a renderizar.
-4. La barra de demo puede “sembrar” con `Fetch` o `XHR`, y muestra un overlay de carga durante la operación.
+4. La barra de demo puede "sembrar" con `Fetch` o `XHR`, y muestra un overlay de carga durante la operación.
 
 ---
 
@@ -334,58 +337,67 @@ flowchart TD
 - Escapado de HTML en `TaskManager.escapeHtml()`.
 - Estados de carga y deshabilitado de controles en operaciones asíncronas.
 - Contador de tareas y filtros que no dependen de cómo llegan los datos.
-- Comentarios JSDoc y de secciones que explican el “por qué”.
+- Comentarios JSDoc y de secciones que explican el "por qué".
 
 ---
 
 ## Ideas de ejercicios guiados
 
-- Prioridades de tareas
+- **Prioridades de tareas**
   - Objetivo: Añadir un campo `priority` (low|medium|high) y un selector al crear/editar.
-  - Pistas: Extiende el objeto de tarea en `api.js` y ajusta el render en `taskManager.js`. Usa clases CSS para colorear etiquetas.
+  - Pistas: Extiende el objeto de tarea en `api.js` y ajusta el render en `taskManager.js`. Usa clases de Foundation para colorear etiquetas.
 
-- Búsqueda por texto
+- **Búsqueda por texto**
   - Objetivo: Filtrar tareas en tiempo real por coincidencia parcial en `text`.
   - Pistas: Añade un input de búsqueda y filtra sobre `this.tasks` antes de `renderTasks()`.
 
-- Exportar/Importar JSON
+- **Exportar/Importar JSON**
   - Objetivo: Permitir descargar las tareas como `.json` y volver a cargarlas.
   - Pistas: `JSON.stringify(this.tasks)` + `URL.createObjectURL(new Blob(...))` para exportar; `FileReader` para importar y luego `taskAPI.saveTasks()`.
 
-- Confirmación visual de eliminación
-  - Objetivo: Reemplazar `confirm()` por un toast/dialog no bloqueante.
-  - Pistas: Crea un mini componente con HTML/CSS, y resuelve la promesa cuando el usuario confirma/cancela.
+- **Confirmación visual de eliminación**
+  - Objetivo: Reemplazar `confirm()` por un modal de Foundation o toast no bloqueante.
+  - Pistas: Usa el componente Reveal modal de Foundation, y resuelve la promesa cuando el usuario confirma/cancela.
 
-- Tests (si usas un entorno con Node)
+- **Tests (si usas un entorno con Node)**
   - Objetivo: Añadir unit tests a `TaskManager` (métodos puros) y pruebas de interacción DOM.
-    - Pistas: `jest` + `@testing-library/dom` o Playwright para flujos E2E.
+  - Pistas: `jest` + `@testing-library/dom` o Playwright para flujos E2E.
 
 ---
 
 ## Glosario (para alumnos)
 
-- Asincronía: Operaciones que tardan (red, disco) sin bloquear la UI. En JS se maneja con Promesas y async/await.
-- Promise: Objeto que representa el resultado futuro de una operación asincrónica (éxito o error).
-- DOM: Representación del documento HTML como árbol de nodos; permite manipular la interfaz desde JS.
-- CORS: Política que regula el acceso entre orígenes distintos; en file:// los navegadores restringen módulos y lecturas locales.
-- Fetch API: Interfaz moderna para peticiones HTTP basada en Promesas.
-- XMLHttpRequest (XHR): API clásica de AJAX previa a Fetch, basada en eventos/callbacks.
-- localStorage: Almacenamiento clave-valor persistente en el navegador; útil para demos sin servidor.
-- ARIA: Atributos de accesibilidad para mejorar la experiencia con tecnologías de asistencia (ej. aria-label).
-- :focus-visible: Pseudoclase CSS que muestra el foco al navegar con teclado sin molestar al uso con mouse.
+- **Asincronía:** Operaciones que tardan (red, disco) sin bloquear la UI. En JS se maneja con Promesas y async/await.
+- **Promise:** Objeto que representa el resultado futuro de una operación asincrónica (éxito o error).
+- **DOM:** Representación del documento HTML como árbol de nodos; permite manipular la interfaz desde JS.
+- **CORS:** Política que regula el acceso entre orígenes distintos; en file:// los navegadores restringen módulos y lecturas locales.
+- **Fetch API:** Interfaz moderna para peticiones HTTP basada en Promesas.
+- **XMLHttpRequest (XHR):** API clásica de AJAX previa a Fetch, basada en eventos/callbacks.
+- **localStorage:** Almacenamiento clave-valor persistente en el navegador; útil para demos sin servidor.
+- **ARIA:** Atributos de accesibilidad para mejorar la experiencia con tecnologías de asistencia (ej. aria-label).
+- **:focus-visible:** Pseudoclase CSS que muestra el foco al navegar con teclado sin molestar al uso con mouse.
+- **Foundation:** Framework CSS que proporciona un sistema de grid responsive y componentes UI prediseñados.
 
+---
 
-- Fetch/XHR fallan (sin red o endpoint caído)
-  - Síntoma: Notificación de error al “Sembrar”.
+## Solución de problemas comunes
+
+- **Fetch/XHR fallan (sin red o endpoint caído)**
+  - Síntoma: Notificación de error al "Sembrar".
   - Verifica: Conexión a Internet, consola del navegador, endpoint accesible.
   - Alternativa: La app sigue funcionando con `localStorage` sin sembrar.
 
-- No persisten las tareas
+- **No persisten las tareas**
   - Síntoma: Al recargar, desaparecen las tareas.
   - Causa: el navegador puede estar en modo incógnito bloqueando `localStorage`.
   - Solución: Usar ventana normal o permitir almacenamiento local.
 
-- Overlay no se muestra
+- **Overlay no se muestra**
   - Síntoma: No ves el spinner durante Fetch/XHR.
-  - Causa: Clase `.show` no aplicada o CSS no cargado.
-  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y la sección de CSS del overlay.
+  - Causa: Clase `.show` no aplicada o estilos inline no cargados.
+  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y la sección `<style>` del HTML.
+
+- **Estilos de Foundation no cargan**
+  - Síntoma: La aplicación se ve sin estilos o rota.
+  - Causa: Sin conexión a Internet, CDN de Foundation caído.
+  - Solución: Verifica conexión a Internet y que el CDN de Foundation esté accesible.

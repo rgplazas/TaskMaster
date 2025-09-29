@@ -340,27 +340,11 @@ class TaskManager {
             });
         }
 
-        // Tema oscuro/claro
+        // Tema oscuro/claro - DESHABILITADO (solo Foundation v6.9)
         const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        // Cargar preferencia guardada o usar la del sistema
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            themeToggle.checked = true;
+        if (themeToggle) {
+            // El toggle está oculto con CSS, no hacer nada
         }
-
-        // Cambiar tema
-        themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-            }
-        });
     }
 
     /**
