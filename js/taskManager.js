@@ -9,7 +9,15 @@
  * - Se usa una clase para encapsular el estado y los métodos de interacción.
  * - No se usan módulos ES para permitir ejecución directa con file:// sin CORS.
  * - Se separa la lógica (este archivo) del acceso a datos (api.js) y del arranque (app.js).
- * - Se incluyen utilidades de accesibilidad (focus-visible, aria-labels, escapeHtml).
+ * - Se incluyen utilidades de accesibilidad (aria-labels, escapeHtml).
+ *
+ * Migración a Bootstrap 5.3 (UI):
+ * - Render de la lista con componentes/utilidades Bootstrap (list-group, d-flex, gap-*).
+ * - Botones y formularios con clases `btn`, `btn-outline-*`, `form-control`, `form-select`.
+ * - Notificaciones con Bootstrap Toast (`#appToast`, `#appToastBody`).
+ * - Overlay de carga con `spinner-border` y utilidades `d-none`/`d-flex`.
+ * - Tema claro/oscuro con `data-bs-theme` sobre <html>, preferencia persistida en localStorage.
+ * - Se preservan IDs y data-attributes para no romper la lógica existente.
  */
 /**
  * Administrador de tareas: maneja estado, eventos y renderizado.
@@ -181,9 +189,9 @@ class TaskManager {
 
         if (filteredTasks.length === 0) {
             const emptyState = `
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list"></i>
-                    <p>No hay tareas ${this.currentFilter !== 'all' ? this.currentFilter : ''}</p>
+                <div class="empty-state text-center text-secondary py-4">
+                    <i class="fas fa-clipboard-list fa-2x mb-2 opacity-50"></i>
+                    <p class="m-0">No hay tareas ${this.currentFilter !== 'all' ? this.currentFilter : ''}</p>
                 </div>
             `;
             taskList.innerHTML = emptyState;
@@ -192,19 +200,19 @@ class TaskManager {
         }
 
         taskList.innerHTML = filteredTasks.map(task => `
-            <li class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+            <li class="task-item list-group-item d-flex align-items-center gap-3 ${task.completed ? 'opacity-75' : ''}" data-id="${task.id}">
                 <input 
                     type="checkbox" 
-                    class="task-checkbox" 
+                    class="task-checkbox form-check-input me-1" 
                     ${task.completed ? 'checked' : ''}
                     aria-label="Marcar como ${task.completed ? 'pendiente' : 'completada'}"
                 >
-                <span class="task-text">${this.escapeHtml(task.text)}</span>
-                <div class="task-actions">
-                    <button class="edit-btn" aria-label="Editar tarea">
+                <span class="task-text flex-grow-1 ${task.completed ? 'text-secondary text-decoration-line-through' : ''}">${this.escapeHtml(task.text)}</span>
+                <div class="task-actions d-flex gap-2">
+                    <button class="edit-btn btn btn-sm btn-outline-secondary" aria-label="Editar tarea">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-btn" aria-label="Eliminar tarea">
+                    <button class="delete-btn btn btn-sm btn-outline-danger" aria-label="Eliminar tarea">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -238,13 +246,21 @@ class TaskManager {
      * @param {'success'|'error'} [type='success'] - Tipo de mensaje (afecta estilos).
      */
     showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
+        const toastEl = document.getElementById('appToast');
+        const bodyEl = document.getElementById('appToastBody');
+        if (!toastEl || !bodyEl) return alert(message);
 
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
+        // Reset contextual classes
+        toastEl.classList.remove('text-bg-success', 'text-bg-danger');
+        if (type === 'error') {
+            toastEl.classList.add('text-bg-danger');
+        } else {
+            toastEl.classList.add('text-bg-success');
+        }
+
+        bodyEl.textContent = message;
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+        toast.show();
     }
 
     /**
@@ -269,12 +285,17 @@ class TaskManager {
         // Filtros
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const filter = e.target.dataset.filter;
+                const target = e.currentTarget;
+                const filter = target.dataset.filter;
                 this.filterTasks(filter);
-                
-                // Actualizar botones activos
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+
+                // Actualizar estilos con Bootstrap
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('btn-primary');
+                    b.classList.add('btn-outline-secondary');
+                });
+                target.classList.remove('btn-outline-secondary');
+                target.classList.add('btn-primary');
             });
         });
 
@@ -340,24 +361,28 @@ class TaskManager {
             });
         }
 
-        // Tema oscuro/claro
+        // Tema oscuro/claro (Bootstrap data-bs-theme)
         const themeToggle = document.getElementById('themeToggle');
         const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
+
         // Cargar preferencia guardada o usar la del sistema
         const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
+        const initialDark = currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches);
+        if (initialDark) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
             themeToggle.checked = true;
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+            themeToggle.checked = false;
         }
 
         // Cambiar tema
         themeToggle.addEventListener('change', (e) => {
             if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
             } else {
-                document.documentElement.removeAttribute('data-theme');
+                document.documentElement.setAttribute('data-bs-theme', 'light');
                 localStorage.setItem('theme', 'light');
             }
         });
@@ -391,15 +416,16 @@ class TaskManager {
             seedXHRBtn.textContent = loading && opts.running === 'xhr' ? 'Sembrando… (XHR)' : seedXHRBtn.dataset.originalText;
         }
 
-        // Mostrar/ocultar overlay de carga
+        // Mostrar/ocultar overlay de carga (Bootstrap utilities)
         if (overlay) {
             if (loading) {
-                overlay.classList.add('show');
+                overlay.classList.remove('d-none');
+                overlay.classList.add('d-flex');
                 overlay.setAttribute('aria-hidden', 'false');
             } else {
-                // Pequeño retraso para evitar parpadeo
                 setTimeout(() => {
-                    overlay.classList.remove('show');
+                    overlay.classList.remove('d-flex');
+                    overlay.classList.add('d-none');
                     overlay.setAttribute('aria-hidden', 'true');
                 }, 150);
             }
@@ -429,15 +455,7 @@ class TaskManager {
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = task.text;
-                input.className = 'edit-input';
-                
-                // Aplicar estilos al input
-                input.style.width = '100%';
-                input.style.padding = '0.5rem';
-                input.style.border = '1px solid var(--border-color)';
-                input.style.borderRadius = '4px';
-                input.style.backgroundColor = 'var(--card-bg)';
-                input.style.color = 'var(--text-primary)';
+                input.className = 'edit-input form-control form-control-sm';
                 
                 // Reemplazar el texto con el input
                 taskText.replaceWith(input);

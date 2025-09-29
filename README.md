@@ -1,8 +1,8 @@
-﻿# TaskMaster (HTML + CSS + JavaScript puro)
+# TaskMaster (HTML + Bootstrap 5.3 + JavaScript)
 
 [![Educational Project](https://img.shields.io/badge/educational-project-blue)](#)
 
-Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador sin frameworks ni Node:
+Este proyecto es un gestor de tareas moderno y didáctico que demuestra tres formas de trabajar con datos en el navegador, ahora con interfaz basada en **Bootstrap 5.3** sin frameworks de JavaScript ni Node:
 
 - Local (sin red): usando `localStorage` con API asíncrona simulada.
 - Fetch API: pidiendo datos a un endpoint público (JSONPlaceholder).
@@ -16,28 +16,26 @@ La aplicación está pensada para que un alumno pueda leer el código y entender
 
 ```
 TaskMaster/
-├─ index.html                # Estructura semántica y carga de scripts
-├─ css/
-│  └─ styles.css             # Estilos, temas y accesibilidad
+├─ index.html                # Estructura semántica, Bootstrap 5.3 (CDN) y puntos de montaje
 └─ js/
    ├─ api.js                 # Capa de datos (localStorage, Fetch, XHR)
-   ├─ taskManager.js         # Lógica de negocio y render de UI
+   ├─ taskManager.js         # Lógica de negocio y render de UI (Bootstrap components)
    └─ app.js                 # Arranque de la aplicación
 ```
 
 ---
 
-## Filosofía y separación de responsabilidades
+## Filosofía y separación de responsabilidades (con Bootstrap)
 
 - `index.html`
-  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración (sembrar datos por Fetch/XHR y vaciar).
-  - Carga scripts “clásicos” en orden: primero la capa de datos (`api.js`), luego la lógica (`taskManager.js`) y, por último, el arranque (`app.js`).
-  - ¿Por qué clásico y no ES Modules? Al abrir por `file://`, los navegadores pueden bloquear módulos ES por CORS. Evitamos servidores externos para mantener la consigna “solo HTML/CSS/JS”.
+  - Define la estructura semántica (header, main, lista de tareas) y una barra de demostración.
+  - Incluye Bootstrap 5.3 por CDN (CSS y JS bundle) y Font Awesome para iconos.
+  - Se provee un contenedor de **Toast** para notificaciones (`#appToast`) y un overlay con **spinner** de Bootstrap para operaciones de demostración.
+  - Carga scripts “clásicos” en orden: `api.js` → `taskManager.js` → `app.js`.
 
 - `css/styles.css`
-  - Usa variables CSS (paleta, bordes, sombras, transiciones) y un modo oscuro controlado por `[data-theme="dark"]`.
-  - Estilo minimalista: preferimos bordes sutiles y buen contraste, con atención a accesibilidad (`:focus-visible`).
-  - Incluye un overlay de carga con spinner para las demostraciones Fetch/XHR.
+  - Ya no es necesario tras la migración; se mantiene como referencia histórica. Bootstrap se encarga de la tipografía, layout, componentes y utilidades.
+  - El tema oscuro ahora se maneja con `data-bs-theme` en el elemento `<html>`.
 
 - `js/api.js`
   - Encapsula todo el acceso a datos con una API asíncrona: obtener, guardar, añadir, actualizar y eliminar tareas.
@@ -47,8 +45,10 @@ TaskMaster/
 
 - `js/taskManager.js`
   - Clase `TaskManager` que gestiona estado, eventos y render del DOM.
-  - Maneja filtros, edición en línea, eliminación, contador y notificaciones.
-  - Implementa la barra de demostración y un overlay de carga mientras se ejecutan Fetch/XHR.
+  - Renderiza la lista con clases de **Bootstrap** (`list-group`, botones `btn`, utilidades de layout, etc.).
+  - Notificaciones con **Bootstrap Toast** (`#appToast`), sin CSS personalizado.
+  - Overlay con `spinner-border` y utilidades `d-none/d-flex`.
+  - Tema claro/oscuro mediante `data-bs-theme` persistido en `localStorage`.
   - Se publica la clase como `window.TaskManager`.
 
 - `js/app.js`
@@ -59,6 +59,8 @@ TaskMaster/
 ## Cómo ejecutar
 
 1. Abre `index.html` con doble clic (se abrirá con `file://`).
+   - Requiere Internet para cargar los CDNs de Bootstrap y Font Awesome.
+   - Si no hay Internet, la app funciona pero los estilos/componentes de Bootstrap no se aplicarán.
 2. Añade tareas, márcalas como completadas, edítalas o elimínalas.
 3. Prueba la barra de demostración:
    - Elige la “Cantidad” (3/5/10).
@@ -334,7 +336,17 @@ flowchart TD
 - Escapado de HTML en `TaskManager.escapeHtml()`.
 - Estados de carga y deshabilitado de controles en operaciones asíncronas.
 - Contador de tareas y filtros que no dependen de cómo llegan los datos.
+- Notificaciones con **Bootstrap Toast**.
+- Modo claro/oscuro con `data-bs-theme`.
 - Comentarios JSDoc y de secciones que explican el “por qué”.
+
+---
+
+## Tema claro/oscuro
+
+- El switch en el header controla `data-bs-theme` sobre `<html>`.
+- Se persiste en `localStorage` como `theme = 'light' | 'dark'`.
+- Si no hay preferencia guardada, respeta `prefers-color-scheme` del sistema.
 
 ---
 
@@ -387,5 +399,20 @@ flowchart TD
 
 - Overlay no se muestra
   - Síntoma: No ves el spinner durante Fetch/XHR.
-  - Causa: Clase `.show` no aplicada o CSS no cargado.
-  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y la sección de CSS del overlay.
+  - Causa: El overlay usa utilidades `d-none/d-flex` de Bootstrap y requiere que el bundle JS/CSS esté cargado.
+  - Solución: Revisa `setDemoLoading()` en `taskManager.js` y que el CDN de Bootstrap cargue correctamente.
+
+- Toasts no aparecen
+  - Síntoma: No salen notificaciones.
+  - Causa: Falta del bundle JS de Bootstrap.
+  - Solución: Verifica el `<script>` de Bootstrap en `index.html`.
+
+---
+
+## Changelog
+
+- v2 (Bootstrap 5.3)
+  - Migración completa de estilos propios a **Bootstrap** (list-group, botones, formularios, utilidades).
+  - Notificaciones con **Toast** y overlay de carga con **spinner-border**.
+  - Tema con `data-bs-theme` y persistencia en `localStorage`.
+  - Eliminado `css/styles.css` (legacy).

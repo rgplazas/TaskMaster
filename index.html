@@ -7,9 +7,13 @@
   - Cargar estilos y scripts en el orden correcto.
 
   Decisiones y razones:
-  - Sin frameworks ni módulos ES para permitir abrir con file:// sin servidores.
+  - UI migrada a Bootstrap 5.3 (CDN) para estilos y componentes (list-group, botones, spinner, toast).
+  - Notificaciones con Bootstrap Toast (`#appToast`).
+  - Overlay de carga con utilidades Bootstrap (`d-none`/`d-flex`) y `spinner-border`.
+  - Tema claro/oscuro gestionado por `data-bs-theme` en `<html>` (ver `taskManager.js`).
+  - Sin módulos ES para permitir abrir con file:// sin servidores.
   - Scripts clásicos en orden: api (datos) -> taskManager (lógica/UI) -> app (arranque).
-  - Se usan clases y data-attributes para separar estilo (CSS) y comportamiento (JS).
+  - IDs y data-attributes se mantienen para enlazar con la lógica JS.
 -->
 <html lang="es">
 <head>
@@ -17,73 +21,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaskMaster - Gestor de Tareas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body>
-    <div class="container">
+    <div class="container py-4">
         <!-- Encabezado: título y selector de tema -->
-        <header class="header">
-            <h1><i class="fas fa-tasks"></i> TaskMaster</h1>
-            <div class="theme-toggle">
-                <i class="fas fa-moon"></i>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle" />
-                    <span class="slider round"></span>
-                </label>
-                <i class="fas fa-sun"></i>
+        <header class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+            <h1 class="h3 text-primary m-0"><i class="fas fa-tasks me-2"></i>TaskMaster</h1>
+            <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-moon text-secondary"></i>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="themeToggle" />
+                </div>
+                <i class="fas fa-sun text-warning"></i>
             </div>
         </header>
 
         <!-- Zona principal: entrada, filtros, estadísticas y lista -->
         <main>
-            <div class="add-task-container">
-                <input type="text" id="taskInput" placeholder="Añade una nueva tarea..." autocomplete="off" />
+            <div class="d-flex gap-2 mb-3 flex-column flex-sm-row">
+                <input type="text" id="taskInput" class="form-control" placeholder="Añade una nueva tarea..." autocomplete="off" />
                 <button id="addTaskBtn" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Añadir
+                    <i class="fas fa-plus me-1"></i> Añadir
                 </button>
             </div>
 
             <!-- Filtros de visualización -->
-            <div class="filters">
-                <button class="filter-btn active" data-filter="all">Todas</button>
-                <button class="filter-btn" data-filter="pending">Pendientes</button>
-                <button class="filter-btn" data-filter="completed">Completadas</button>
+            <div class="mb-3">
+                <div class="btn-group" role="group" aria-label="Filtros">
+                    <button class="filter-btn btn btn-primary" data-filter="all">Todas</button>
+                    <button class="filter-btn btn btn-outline-secondary" data-filter="pending">Pendientes</button>
+                    <button class="filter-btn btn btn-outline-secondary" data-filter="completed">Completadas</button>
+                </div>
             </div>
 
             <!-- Resumen de estado -->
-            <div class="task-stats">
+            <div class="d-flex justify-content-between align-items-center mb-2 text-secondary small">
                 <span id="taskCount">0 tareas</span>
-                <button id="clearCompleted" class="btn btn-text">Limpiar completadas</button>
+                <button id="clearCompleted" class="btn btn-link p-0">Limpiar completadas</button>
             </div>
 
             <!-- Barra de demostración: sembrar datos por Fetch o XHR y vaciar -->
-            <div class="demo-toolbar" aria-label="Demostración de carga de datos">
-                <label for="seedCount" style="color: var(--text-secondary);">Cantidad:</label>
-                <select id="seedCount" aria-label="Cantidad a sembrar" title="Cantidad a sembrar" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-bg); color: var(--text-primary);">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2" aria-label="Demostración de carga de datos">
+                <label for="seedCount" class="text-secondary me-1">Cantidad:</label>
+                <select id="seedCount" class="form-select form-select-sm w-auto" aria-label="Cantidad a sembrar" title="Cantidad a sembrar">
                     <option value="3">3</option>
                     <option value="5" selected>5</option>
                     <option value="10">10</option>
                 </select>
-                <button id="seedFetch" class="btn btn-text" title="Sembrar con Fetch API">Sembrar (Fetch)</button>
-                <button id="seedXHR" class="btn btn-text" title="Sembrar con XMLHttpRequest">Sembrar (XHR)</button>
-                <button id="clearAll" class="btn btn-text" title="Vaciar todas las tareas">Vaciar todo</button>
+                <button id="seedFetch" class="btn btn-sm btn-outline-secondary" title="Sembrar con Fetch API">Sembrar (Fetch)</button>
+                <button id="seedXHR" class="btn btn-sm btn-outline-secondary" title="Sembrar con XMLHttpRequest">Sembrar (XHR)</button>
+                <button id="clearAll" class="btn btn-sm btn-outline-danger" title="Vaciar todas las tareas">Vaciar todo</button>
             </div>
-            <p class="demo-help" style="margin: 0 0 0.75rem 0; color: var(--text-secondary); font-size: 0.85rem;">
+            <p class="m-0 mb-2 text-secondary small">
                 Demostración: Local (sin red) usa <code>localStorage</code>, Fetch usa <code>fetch()</code>, y AJAX usa <code>XMLHttpRequest</code>.
             </p>
 
             <!-- Lista de tareas (renderizada por JS) -->
-            <ul id="taskList" class="task-list">
+            <ul id="taskList" class="list-group">
                 <!-- Las tareas se agregarán aquí dinámicamente -->
             </ul>
         </main>
 
         <!-- Overlay de carga para operaciones de demostración -->
-        <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
-            <div class="spinner" aria-label="Cargando"></div>
+        <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center bg-dark bg-opacity-25" aria-hidden="true">
+            <div class="spinner-border text-primary" role="status" aria-label="Cargando">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
         </div>
 
-        <div class="notification" id="notification"></div>
+        <!-- Toast de notificaciones -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+            <div id="appToast" class="toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true" data-bs-delay="3000">
+                <div class="d-flex">
+                    <div id="appToastBody" class="toast-body">
+                        <!-- mensaje -->
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Orden de scripts importante:
@@ -91,8 +109,11 @@
          2) taskManager.js: lógica y render (window.TaskManager)
          3) app.js: arranque e instancia global (window.taskManager)
     -->
+    <!-- Bootstrap 5.3 JS bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="js/api.js"></script>
     <script src="js/taskManager.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
+
